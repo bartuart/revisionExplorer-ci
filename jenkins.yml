@@ -1,0 +1,8 @@
+---
+- hosts: jenkins
+  remote_user: vagrant
+  
+  tasks:
+    - name: Show variable
+      debug:
+        var: jenkins_package_state
