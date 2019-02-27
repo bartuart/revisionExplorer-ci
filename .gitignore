@@ -2,3 +2,5 @@
 .vagrant/
 roles/*
 !roles/put_here_project_roles
+VAULT_PASSWORD_FILE
+*.retry

@@ -2,7 +2,28 @@
 - hosts: jenkins
   remote_user: vagrant
   
+  roles:
+    - role: fubarhouse.curl
+    
+    - role: geerlingguy.java
+      when: "ansible_os_family == 'RedHat'"
+      java_packages:
+        - java-1.8.0-openjdk
+      become: yes
+    
+    - role: geerlingguy.jenkins
+      become: yes
+      
   tasks:
-    - name: Show variable
-      debug:
-        var: jenkins_package_state
+    - name: Enable Jenkins port
+      firewalld:
+        port: "{{ jenkins_http_port }}/tcp"
+        permanent: yes
+        state: enabled
+      become: yes
+      
+    - name: Restart Jenkins once installation completed
+      service:
+        name: jenkins
+        state: restarted
+      become: yes

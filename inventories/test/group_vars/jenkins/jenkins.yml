@@ -1,2 +1,3 @@
 ---
-jenkins_package_state: test_specific_value
+jenkins_http_port: 8080
+jenkins_admin_username: admin
