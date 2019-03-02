@@ -1,0 +1,114 @@
+---
+- hosts: nexus
+  remote_user: vagrant
+  become: yes
+  
+  vars:
+    apache_listen_ip: "*"
+    apache_listen_port_ssl: "{{ nexus_https_port }}"
+    apache_create_vhosts: true
+    apache_vhosts_filename: "nexus.conf"
+    apache_vhosts_template: "nexus.conf.j2"
+    apache_remove_default_vhost: true
+    
+    apache_vhosts_ssl:
+      - servername: "nexus"
+        documentroot: "/"
+        certificate_file: "{{ nexus_ssl_cert_file }}"
+        certificate_key_file: "{{ nexus_ssl_key }}"
+    
+    apache_state: started
+    
+    
+    nexus_default_port: "{{ nexus_http_port }}"
+    nexus_admin_password: "{{ nexus_admin_password_vault }}"
+    nexus_delete_default_repos: true
+    nexus_delete_default_blobstore: true
+    
+    nexus_blobstores:
+      - name: docker
+        path: "{{nexus_data_dir}}/blobs/docker"
+
+    nexus_config_docker: true
+    
+    _nexus_repos_docker_defaults:
+      blob_store: docker
+      force_basic_auth: true
+      strict_content_validation: true
+      version_policy: mixed
+      layout_policy: strict
+      write_policy: allow
+      
+    nexus_repos_docker_hosted:
+      - name: docker
+        #http_port: 1885
+        v1_enabled: false
+    nexus_repos_docker_proxy: []
+    nexus_repos_docker_group: []
+  
+  pre_tasks:
+    - name: Install epel-release
+      yum:
+        name: epel-release
+        state: present
+        
+    - name: Install python liblaries
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - python-pip
+        - python-devel.x86_64
+        - openssl-devel.x86_64
+        - libffi-devel.x86_64
+        - python-setuptools.noarch
+        
+    - name: Install pyopenssl using pip module
+      pip:
+        name: pyopenssl
+        
+    - name: "Adding {{ nexus_os_group }} group"
+      group:
+        name: "{{ nexus_os_group }}"
+        state: present
+        
+    - name: "Adding {{ nexus_os_user }} user"
+      user:
+        name: "{{ nexus_os_user }}"
+        group: "{{ nexus_os_group }}"
+        state: present
+        
+    - name: Create directory for SSL certificate
+      file:
+        path: "{{ nexus_ssl_dir }}"
+        state: directory
+        group: "{{ nexus_os_group }}"
+        
+    - name: Generate pem file for SSL certificate
+      openssl_privatekey:
+        path: "{{ nexus_ssl_key }}"
+        
+    - name: Generate CSR for SSL certificate
+      openssl_csr:
+        path: "{{ nexus_ssl_csr_file }}"
+        privatekey_path: "{{ nexus_ssl_key }}"
+        
+    - name: Generate a Self Signed OpenSSL certificate for Nexus
+      openssl_certificate:
+        path: "{{ nexus_ssl_cert_file }}"
+        privatekey_path: "{{ nexus_ssl_key }}"
+        csr_path: "{{ nexus_ssl_csr_file }}"
+        provider: selfsigned
+  
+  roles:
+    - role: wtanaka.rsync
+    
+    - role: geerlingguy.java
+      when: "ansible_os_family == 'RedHat'"
+      java_packages:
+        - java-1.8.0-openjdk
+      
+    - { role: geerlingguy.apache }
+    
+    - { role: ansible-thoteam.nexus3-oss }

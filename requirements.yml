@@ -1,3 +1,6 @@
 - src: geerlingguy.jenkins
 - src: fubarhouse.curl
 - src: geerlingguy.java
+- src: wtanaka.rsync
+- src: geerlingguy.apache
+- src: ansible-thoteam.nexus3-oss
