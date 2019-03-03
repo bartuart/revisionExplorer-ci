@@ -1,6 +1,8 @@
 ---
 nexus_http_port: 8082
 nexus_https_port: 8083
+nexus_https_docker_registry_port: 5000
+nexus_docker_registry_internal_port: 1885
 nexus_ssl_cert_file_location: "/home/nexus/ssl/nexus.crt"
 nexus_ssl_cert_key_location: "/home/nexus/ssl/nexus.pem"
 nexus_os_user: nexus

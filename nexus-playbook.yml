@@ -41,7 +41,7 @@
       
     nexus_repos_docker_hosted:
       - name: docker
-        #http_port: 1885
+        http_port: "{{ nexus_docker_registry_internal_port }}"
         v1_enabled: false
     nexus_repos_docker_proxy: []
     nexus_repos_docker_group: []
@@ -93,6 +93,12 @@
       openssl_csr:
         path: "{{ nexus_ssl_csr_file }}"
         privatekey_path: "{{ nexus_ssl_key }}"
+        #common_name: "10.0.0.201"
+        subject_alt_name: "IP:10.0.0.201"
+        #C: "US"
+        #O: "Let's Encrypt"
+        #CN: "Let's Encrypt Authority X3"
+        #force: yes
         
     - name: Generate a Self Signed OpenSSL certificate for Nexus
       openssl_certificate:
@@ -100,6 +106,8 @@
         privatekey_path: "{{ nexus_ssl_key }}"
         csr_path: "{{ nexus_ssl_csr_file }}"
         provider: selfsigned
+        # selfsigned_digest: sha256
+        #force: yes
   
   roles:
     - role: wtanaka.rsync
@@ -112,3 +120,10 @@
     - { role: geerlingguy.apache }
     
     - { role: ansible-thoteam.nexus3-oss }
+    
+    
+  post_tasks:
+    - name: Restart Apache server
+      service:
+        name: httpd
+        state: restarted

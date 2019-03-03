@@ -1,4 +1,5 @@
 Listen {{ apache_listen_port_ssl }}
+Listen {{ nexus_https_docker_registry_port }}
 
 ProxyRequests Off
 ProxyPreserveHost On
@@ -17,4 +18,20 @@ ProxyPreserveHost On
 
   ErrorLog logs/nexus.log
   CustomLog logs/nexus.log common
+</VirtualHost>
+
+<VirtualHost *:{{ nexus_https_docker_registry_port }}>
+  SSLEngine on
+
+  SSLCertificateFile "{{ nexus_ssl_cert_file }}"
+  SSLCertificateKeyFile "{{ nexus_ssl_key }}"
+
+  ServerName 10.0.0.201
+  ServerAdmin admin@10.0.0.201
+  ProxyPass / http://localhost:{{ nexus_docker_registry_internal_port }}/
+  ProxyPassReverse / http://localhost:{{ nexus_docker_registry_internal_port }}/
+  RequestHeader set X-Forwarded-Proto "https"
+
+  ErrorLog logs/nexus_docker_registry.log
+  CustomLog logs/nexus_docker_registry.log common
 </VirtualHost>
