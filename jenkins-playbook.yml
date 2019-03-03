@@ -1,4 +1,14 @@
 ---
+- hosts: nexus
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Copy certificate file from Nexus host to local
+      fetch:
+        src: "{{ nexus_ssl_cert_file }}"
+        dest: "/tmp"
+
 - hosts: jenkins
   remote_user: vagrant
   become: yes
@@ -11,7 +21,7 @@
     docker_compose_version: "1.24.0-rc1"
     docker_users:
       - jenkins
-  
+
   roles:
     - role: fubarhouse.curl
     
@@ -30,10 +40,35 @@
         port: "{{ jenkins_http_port }}/tcp"
         permanent: yes
         state: enabled
-      become: yes
+        
+    - name: Enable trusted CA
+      command: "update-ca-trust force-enable"
+        
+    - name: Make sure the folder exists (Red Hat)
+      file:
+        path: /etc/ssl/certs
+        state: directory
+        
+    - name: Copy PEM into folder (Red Hat)
+      copy:
+        src: "{{ nexus_cert_file_temp_location }}"
+        dest: "/etc/ssl/certs/{{ ssl_cert_name }}"
+      
+    - name: Creating link for particular certificate
+      file:
+        src: "/etc/ssl/certs/{{ ssl_cert_name }}"
+        dest: "/etc/pki/ca-trust/source/anchors/{{ ssl_cert_name }}"
+        state: link
+      
+    - name: Update trusted CA
+      command: "update-ca-trust"
       
     - name: Restart Jenkins once installation completed
       service:
         name: jenkins
         state: restarted
-      become: yes
+      
+    - name: Restart Docker
+      service:
+        name: docker
+        state: restarted
