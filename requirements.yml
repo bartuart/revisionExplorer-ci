@@ -4,3 +4,4 @@
 - src: wtanaka.rsync
 - src: geerlingguy.apache
 - src: ansible-thoteam.nexus3-oss
+- src: geerlingguy.docker
