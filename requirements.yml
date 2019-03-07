@@ -5,3 +5,6 @@
 - src: geerlingguy.apache
 - src: ansible-thoteam.nexus3-oss
 - src: geerlingguy.docker
+- src: geerlingguy.kubernetes
+- src: geerlingguy.swap
+- src: geerlingguy.php

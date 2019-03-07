@@ -21,9 +21,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.201"
-	vm_config.vm.network "forwarded_port", guest: 8080, host: 9080 #For Jenkins
-	vm_config.vm.network "forwarded_port", guest: 8083, host: 9083 #For Nexus HTTPS
-	vm_config.vm.network "forwarded_port", guest: 5000, host: 9000 #For Nexus HTTPS port for Docker registry
+	#vm_config.vm.network "public_network", ip: "192.168.1.107"
+	#vm_config.vm.network "public_network", ip: "192.168.1.107"
+	#vm_config.vm.network "private_network", ip: "10.0.0.201"
+	#vm_config.vm.network "private_network", ip: "10.0.0.201"
+	#vm_config.vm.network "forwarded_port", guest: 8080, host: 9080 #For Jenkins
+	#vm_config.vm.network "forwarded_port", guest: 8083, host: 9083 #For Nexus HTTPS
+	#vm_config.vm.network "forwarded_port", guest: 5000, host: 9000 #For Nexus HTTPS port for Docker registry
+	#vm_config.vm.network "forwarded_port", guest: 6443, host: 6443 #For Jenkins
     vm_config.vm.hostname = vm_name
 
     vm_config.vm.provider "virtualbox" do |vb|
@@ -40,8 +45,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vm_name = "revisionExplorer-test"
 
     vm_config.vm.box = "bento/centos-7.6"
-    vm_config.vm.network "private_network", ip: "10.0.0.202"
-	vm_config.vm.network "forwarded_port", guest: 8080, host: 9085 #For Application
+	#vm_config.vm.network "public_network", ip: "192.168.1.108"
+	#vm_config.vm.network "public_network", ip: "192.168.1.107"
+    #vm_config.vm.network "private_network", ip: "10.0.0.202"
+	vm_config.vm.network "private_network", ip: "10.0.0.202"
+	#vm_config.vm.network "forwarded_port", guest: 8080, host: 9085 #For Application
     vm_config.vm.hostname = vm_name
 
     vm_config.vm.provider "virtualbox" do |vb|

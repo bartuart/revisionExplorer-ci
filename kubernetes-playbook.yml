@@ -1,0 +1,101 @@
+---
+
+- hosts: kubernetes_all
+  remote_user: vagrant
+  become: yes
+  
+  vars:
+    docker_edition: 'ce'
+    #docker_version: '18.06'
+    docker_package: "docker-{{ docker_edition }}"
+    docker_package_state: present
+    docker_compose_version: "1.24.0-rc1"
+    docker_users:
+      - jenkins
+      
+    swap_file_state: absent
+    
+  roles:
+   - geerlingguy.docker
+   - geerlingguy.swap
+   
+  post_tasks:
+    - name: Set sysctl value for net.bridge.bridge-nf-call-iptables
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        state: present
+        
+    - name: Copy custom flannel file on remote servers
+      copy:
+        src: "templates/kube-flannel.yml"
+        dest: "/tmp/kube-flannel.yml"
+
+
+- hosts: kubernetes_master
+  remote_user: vagrant
+  become: yes
+  
+  vars:
+    #docker_edition: 'ce'
+    #docker_version: '18.06'
+    #docker_package: "docker-{{ docker_edition }}"
+    #docker_package_state: present
+    #docker_compose_version: "1.24.0-rc1"
+    #docker_users:
+    #  - jenkins
+      
+    #swap_file_state: absent
+      
+    kubernetes_role: "master"
+    kubernetes_allow_pods_on_master: false
+    kubernetes_apiserver_advertise_address: '10.0.0.201'
+    #kubernetes_pod_network_cidr: 10.0.0.201/24
+    kubernetes_flannel_manifest_file: "/tmp/kube-flannel.yml"
+    #kubernetes_version: '1.13.0'
+    #kubernetes_version_rhel_package: '1.13.0'
+    #kubernetes_kubelet_extra_args: '--cgroup-driver cgroupfs'
+  
+  # pre_tasks:
+    # - name: Set sysctl value for net.bridge.bridge-nf-call-iptables
+      # sysctl:
+        # name: net.bridge.bridge-nf-call-iptables
+        # value: 1
+        # state: present
+  
+  
+  roles:
+    #- geerlingguy.docker
+    #- geerlingguy.swap
+    - geerlingguy.kubernetes
+    
+    
+- hosts: kubernetes_nodes
+  remote_user: vagrant
+  become: yes
+
+  vars:
+    #docker_edition: 'ce'
+    #docker_version: '18.06'
+    #docker_package: "docker-{{ docker_edition }}"
+    #docker_package_state: present
+    #docker_install_compose: True
+    #docker_compose_version: "1.24.0-rc1"
+    
+    #swap_file_state: absent
+      
+    kubernetes_role: "node"
+    #kubernetes_apiserver_advertise_address: '10.0.0.201'
+    #kubernetes_pod_network_cidr: 10.0.0.201/24
+    
+  # pre_tasks:
+    # - name: Set sysctl value for net.bridge.bridge-nf-call-iptables
+      # sysctl:
+        # name: net.bridge.bridge-nf-call-iptables
+        # value: 1
+        # state: present
+    
+  roles:
+    #- geerlingguy.docker
+    #- geerlingguy.swap
+    - geerlingguy.kubernetes
