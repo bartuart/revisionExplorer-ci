@@ -1,5 +1,5 @@
 ---
-- hosts: kubernetes_all
+- hosts: kubernetes
   remote_user: vagrant
   become: yes
   
@@ -8,8 +8,6 @@
     docker_package: "docker-{{ docker_edition }}"
     docker_package_state: present
     docker_compose_version: "1.24.0-rc1"
-    docker_users:
-      - jenkins
       
     swap_file_state: absent
     
@@ -28,8 +26,7 @@
       copy:
         src: "templates/kube-flannel.yml"
         dest: "/tmp/kube-flannel.yml"
-
-
+        
 - hosts: kubernetes_master
   remote_user: vagrant
   become: yes
@@ -37,12 +34,11 @@
   vars:  
     kubernetes_role: "master"
     kubernetes_allow_pods_on_master: false
-    kubernetes_apiserver_advertise_address: '10.0.0.201'
+    kubernetes_apiserver_advertise_address: '10.0.0.202'
     kubernetes_flannel_manifest_file: "/tmp/kube-flannel.yml"
     
   roles:
     - geerlingguy.kubernetes
-    
     
 - hosts: kubernetes_nodes
   remote_user: vagrant

@@ -32,12 +32,29 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
   
+  #setup revisionExplorer-kube
+  config.vm.define "revisionExplorer-kube" do |vm_config|
+    vm_name = "revisionExplorer-kube"
+
+    vm_config.vm.box = "bento/centos-7.6"
+	vm_config.vm.network "private_network", ip: "10.0.0.202"
+    vm_config.vm.hostname = vm_name
+
+    vm_config.vm.provider "virtualbox" do |vb|
+      vb.name = vm_name
+
+      # Customize the amount of memory on the VM:
+      vb.memory = "2048"
+      vb.cpus = 1
+    end
+  end
+  
   #setup revisionExplorer-test
   config.vm.define "revisionExplorer-test" do |vm_config|
     vm_name = "revisionExplorer-test"
 
     vm_config.vm.box = "bento/centos-7.6"
-	vm_config.vm.network "private_network", ip: "10.0.0.202"
+    vm_config.vm.network "private_network", ip: "10.0.0.203"
     vm_config.vm.hostname = vm_name
 
     vm_config.vm.provider "virtualbox" do |vb|
@@ -54,23 +71,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vm_name = "revisionExplorer-qa"
 
     vm_config.vm.box = "bento/centos-7.6"
-    vm_config.vm.network "private_network", ip: "10.0.0.203"
-    vm_config.vm.hostname = vm_name
-
-    vm_config.vm.provider "virtualbox" do |vb|
-      vb.name = vm_name
-
-      # Customize the amount of memory on the VM:
-      vb.memory = "1024"
-      vb.cpus = 1
-    end
-  end
-  
-  #setup revisionExplorer-prod1
-  config.vm.define "revisionExplorer-prod1" do |vm_config|
-    vm_name = "revisionExplorer-prod1"
-
-    vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.204"
     vm_config.vm.hostname = vm_name
 
@@ -83,9 +83,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
   
-  #setup revisionExplorer-prod2
-  config.vm.define "revisionExplorer-prod2" do |vm_config|
-    vm_name = "revisionExplorer-prod2"
+  #setup revisionExplorer-prod
+  config.vm.define "revisionExplorer-prod" do |vm_config|
+    vm_name = "revisionExplorer-prod"
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.205"
