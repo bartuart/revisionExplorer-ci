@@ -67,7 +67,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.203"
-	vm_config.vm.network "forwarded_port", guest: 8080, host: 9086 #For Application
+	#vm_config.vm.network "forwarded_port", guest: 8080, host: 9086 #For Application
     vm_config.vm.hostname = vm_name
 
     vm_config.vm.provider "virtualbox" do |vb|
@@ -85,7 +85,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.204"
-	vm_config.vm.network "forwarded_port", guest: 8080, host: 9087 #For Application
+	#vm_config.vm.network "forwarded_port", guest: 8080, host: 9087 #For Application
     vm_config.vm.hostname = vm_name
 
     vm_config.vm.provider "virtualbox" do |vb|
@@ -103,7 +103,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.205"
-	vm_config.vm.network "forwarded_port", guest: 8080, host: 9088 #For Application
+	#vm_config.vm.network "forwarded_port", guest: 8080, host: 9088 #For Application
     vm_config.vm.hostname = vm_name
 
     vm_config.vm.provider "virtualbox" do |vb|
