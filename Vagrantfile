@@ -4,6 +4,10 @@ USER = 'vagrant'
 SSH_KEYS = ENV['SSH_KEYS']
 SSH_KEYS = "~/.ssh/" if SSH_KEYS.nil? || SSH_KEYS.empty?
 
+#Commands for provision
+ANSIBLE_INSTALL_COMMAND = 'yum install -y epel-release && yum install -y ansible'
+DISABLE_SWAP = 'swapoff -a'
+
 
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.ssh.insert_key = false
@@ -39,6 +43,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vm_config.vm.box = "bento/centos-7.6"
 	vm_config.vm.network "private_network", ip: "10.0.0.202"
     vm_config.vm.hostname = vm_name
+	
+	vm_config.vm.provision "shell", :run => 'always', inline: "#{DISABLE_SWAP}"
 
     vm_config.vm.provider "virtualbox" do |vb|
       vb.name = vm_name
@@ -56,6 +62,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.203"
     vm_config.vm.hostname = vm_name
+	
+	vm_config.vm.provision "shell", :run => 'always', inline: "#{DISABLE_SWAP}"
 
     vm_config.vm.provider "virtualbox" do |vb|
       vb.name = vm_name
@@ -73,6 +81,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.204"
     vm_config.vm.hostname = vm_name
+	
+	vm_config.vm.provision "shell", :run => 'always', inline: "#{DISABLE_SWAP}"
 
     vm_config.vm.provider "virtualbox" do |vb|
       vb.name = vm_name
@@ -90,6 +100,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.205"
     vm_config.vm.hostname = vm_name
+	
+	vm_config.vm.provision "shell", :run => 'always', inline: "#{DISABLE_SWAP}"
 
     vm_config.vm.provider "virtualbox" do |vb|
       vb.name = vm_name
@@ -108,7 +120,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     vm_config.vm.network "private_network", ip: "10.0.0.206"
     vm_config.vm.hostname = vm_name
 	
-	vm_config.vm.provision "shell", path: "install-ansible.sh"
+	vm_config.vm.provision "shell", inline: "#{ANSIBLE_INSTALL_COMMAND}"
 
     vm_config.vm.provider "virtualbox" do |vb|
       vb.name = vm_name
