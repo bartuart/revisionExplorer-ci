@@ -72,3 +72,50 @@
       service:
         name: docker
         state: restarted
+        
+- hosts: jenkins
+  remote_user: vagrant
+  become: yes
+  tags: update
+  
+  tasks:
+    - name: Generate SSH key pair
+      command: 'ssh-keygen -q -t rsa -f {{ jenkins_ssh_dir }}/id_rsa -C "" -N ""'
+      args:
+        creates: '{{ jenkins_ssh_dir }}/id_rsa'
+        
+    - name: Set permissions for Jenkins private key
+      file:
+        path: "{{ jenkins_ssh_dir }}/id_rsa"
+        owner: jenkins
+        group: jenkins
+        mode: 0600
+        
+    - name: Set permissions for Jenkins public key
+      file:
+        path: "{{ jenkins_ssh_dir }}/id_rsa.pub"
+        owner: jenkins
+        group: jenkins
+        mode: 0644
+        
+    - name: Copy SSH public key from Jenkins server to local folder
+      fetch:
+        src: "{{ jenkins_ssh_dir }}/id_rsa.pub"
+        dest: "/tmp"
+        
+    - name: Move got SSH public key into local /tmp folder
+      command: "mv /tmp/{{ inventory_hostname }}{{ jenkins_ssh_dir }}/id_rsa.pub /tmp/id_rsa.pub"
+      delegate_to: localhost
+        
+
+- hosts: kubernetes_master
+  remote_user: vagrant
+  become: yes
+  tags: update
+  
+  tasks:
+    - name: Set authorized key taken from local temp file
+      authorized_key:
+        user: vagrant
+        state: present
+        key: "{{ lookup('file', '/tmp/id_rsa.pub') }}"

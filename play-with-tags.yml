@@ -1,0 +1,15 @@
+---
+- hosts: nexus
+  
+  tasks:
+    - debug:
+        msg: "Initial tag"
+      tags: initial
+      
+    - debug:
+        msg: "Update tag"
+      tags: update
+        
+    - debug:
+        msg: "Initial tag"
+      tags: initial
