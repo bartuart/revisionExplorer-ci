@@ -8,3 +8,6 @@
 - src: geerlingguy.kubernetes
 - src: geerlingguy.swap
 - src: geerlingguy.php
+- src: meierw.jenkins_job_dsl_exec
+- src: meierw.jenkins_config
+- src: geerlingguy.git

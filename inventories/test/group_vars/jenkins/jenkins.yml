@@ -3,3 +3,4 @@ jenkins_http_port: 8080
 jenkins_admin_username: admin
 jenkins_home: /var/lib/jenkins/
 jenkins_ssh_dir: "{{ jenkins_home }}/.ssh"
+jenkins_github_user: bartuart
