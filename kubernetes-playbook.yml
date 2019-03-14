@@ -8,6 +8,8 @@
     docker_package: "docker-{{ docker_edition }}"
     docker_package_state: present
     docker_compose_version: "1.24.0-rc1"
+    docker_users:
+      - vagrant
       
     swap_file_state: absent
     

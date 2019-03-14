@@ -1,4 +1,4 @@
-pipelineJob('example') {
+pipelineJob('revisionExplorer') {
     definition {
         cpsScm {
             scm {

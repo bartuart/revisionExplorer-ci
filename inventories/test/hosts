@@ -15,3 +15,10 @@
 [kubernetes:children]
 kubernetes_master
 kubernetes_nodes
+
+[docker_registry_users:children]
+jenkins
+kubernetes_master
+
+[jenkins_agents:children]
+kubernetes_master

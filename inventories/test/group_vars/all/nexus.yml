@@ -4,6 +4,7 @@ nexus_http_port: 8082
 nexus_https_port: 8083
 nexus_https_docker_registry_port: 5000
 nexus_docker_registry_internal_port: 1885
+nexus_admin_user: admin
 nexus_os_user: nexus
 nexus_os_group: nexus
 nexus_ssl_dir: "/home/{{ nexus_os_user }}/ssl"

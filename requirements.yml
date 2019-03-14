@@ -11,3 +11,5 @@
 - src: meierw.jenkins_job_dsl_exec
 - src: meierw.jenkins_config
 - src: geerlingguy.git
+- src: gantsign.maven
+- src: lean_delivery.jenkins_slave

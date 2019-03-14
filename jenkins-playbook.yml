@@ -35,6 +35,8 @@
     - role: geerlingguy.docker
     
     - role: geerlingguy.git
+    
+    - role: gantsign.maven
       
   tasks:
     - name: Enable Jenkins port
@@ -42,7 +44,26 @@
         port: "{{ jenkins_http_port }}/tcp"
         permanent: yes
         state: enabled
+      
+    - name: Set git global user email
+      become_user: jenkins
+      git_config:
+        name: user.email
+        scope: global
+        value: arturik16@inbox.lv
         
+    - name: Set git global user
+      become_user: jenkins
+      git_config:
+        name: user.name
+        scope: global
+        value: bartuart
+        
+- hosts: docker_registry_users
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
     - name: Enable trusted CA
       command: "update-ca-trust force-enable"
         
@@ -64,20 +85,6 @@
       
     - name: Update trusted CA
       command: "update-ca-trust"
-      
-    - name: Set git global user email
-      become_user: jenkins
-      git_config:
-        name: user.email
-        scope: global
-        value: arturik16@inbox.lv
-        
-    - name: Set git global user
-      become_user: jenkins
-      git_config:
-        name: user.name
-        scope: global
-        value: bartuart
         
 - hosts: jenkins
   remote_user: vagrant
@@ -112,7 +119,6 @@
     - name: Move got SSH public key into local /tmp folder
       command: "mv /tmp/{{ inventory_hostname }}{{ jenkins_ssh_dir }}/id_rsa.pub /tmp/id_rsa.pub"
       delegate_to: localhost
-        
 
 - hosts: kubernetes_master
   remote_user: vagrant
@@ -142,6 +148,20 @@
         username: "{{ jenkins_github_user }}"
         password: "{{ jenkins_github_password }}"
         description: Github Credentials
+      - kind: username_with_password
+        id: docker-registry
+        username: "{{ nexus_admin_user }}"
+        password: "{{ nexus_admin_password_vault }}"
+        description: Nexus Docker Registry
+      - kind: username_with_password
+        id: kubernetes-master
+        username: "{{ jenkins_agent_user }}"
+        password: "{{ jenkins_agent_password }}"
+        description: SSH to Kubernetes master
+        
+    jenkins_config_global_environment_variables:
+      - name: DOCKER_REGISTRY
+        value: "{{ inventory_hostname }}:{{ nexus_https_docker_registry_port }}"
         
     jenkins_job_dsl_url: "http://{{ inventory_hostname }}:{{ jenkins_http_port }}"
     jenkins_job_dsl_user: "{{ jenkins_admin_username }}"
@@ -151,6 +171,59 @@
   roles:
    - meierw.jenkins_config
    - meierw.jenkins_job_dsl_exec
+   
+- hosts: jenkins_agents
+  remote_user: vagrant
+  become: yes
+  
+  vars:
+    master_host: 10.0.0.201
+    master_username: "{{ jenkins_admin_username }}"
+    master_password: "{{ jenkins_admin_password }}"
+    slave_linux_jenkins_cred_id: kubernetes-master
+    slave_linux_jenkins_username: "{{ jenkins_agent_user }}"
+    slave_linux_jenkins_password: "{{ jenkins_agent_password }}"
+    slave_linux_user_group: "{{ jenkins_agent_user }}"
+    slave_agent_name: kubernetes_master
+  
+  roles:
+    - role: geerlingguy.java
+      when: "ansible_os_family == 'RedHat'"
+      java_packages:
+        - java-1.8.0-openjdk
+        
+    - role: lean_delivery.jenkins_slave
+    
+  tasks:
+    - name: Set git global user email
+      become_user: jenkins
+      git_config:
+        name: user.email
+        scope: global
+        value: arturik16@inbox.lv
+        
+    - name: Set git global user
+      become_user: jenkins
+      git_config:
+        name: user.name
+        scope: global
+        value: bartuart
+    
+    - name: Add agent user to docker group
+      user:
+        name: "{{ slave_linux_jenkins_username }}"
+        groups: "{{ slave_linux_user_group }},docker"
+        
+- hosts: kubernetes_master
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Changed owner for .kube folder
+      file:
+        path: /root/.kube
+        owner: "{{ jenkins_agent_user }}"
+        group: "{{ jenkins_agent_user }}"
    
 - hosts: jenkins
   remote_user: vagrant

@@ -4,3 +4,5 @@ jenkins_admin_username: admin
 jenkins_home: /var/lib/jenkins/
 jenkins_ssh_dir: "{{ jenkins_home }}/.ssh"
 jenkins_github_user: bartuart
+jenkins_agent_user: jenkins
+jenkins_agent_password: jenkins
