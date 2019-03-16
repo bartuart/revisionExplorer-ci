@@ -85,6 +85,11 @@
       
     - name: Update trusted CA
       command: "update-ca-trust"
+      
+    - name: Restart Docker
+      service:
+        name: docker
+        state: restarted
         
 - hosts: jenkins
   remote_user: vagrant
@@ -213,17 +218,6 @@
       user:
         name: "{{ slave_linux_jenkins_username }}"
         groups: "{{ slave_linux_user_group }},docker"
-        
-- hosts: kubernetes_master
-  remote_user: vagrant
-  become: yes
-  
-  tasks:
-    - name: Changed owner for .kube folder
-      file:
-        path: /root/.kube
-        owner: "{{ jenkins_agent_user }}"
-        group: "{{ jenkins_agent_user }}"
    
 - hosts: jenkins
   remote_user: vagrant

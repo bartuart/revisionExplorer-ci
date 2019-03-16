@@ -19,6 +19,7 @@ kubernetes_nodes
 [docker_registry_users:children]
 jenkins
 kubernetes_master
+kubernetes_nodes
 
 [jenkins_agents:children]
 kubernetes_master
