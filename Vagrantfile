@@ -19,9 +19,31 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "file", source: "#{SSH_KEYS}id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
   
   
-  #setup revisionExplorer-ci
-  config.vm.define "revisionExplorer-ci" do |vm_config|
-    vm_name = "revisionExplorer-ci"
+  #setup revisionExplorer-ansible2
+  config.vm.define "revisionExplorer-ansible2" do |vm_config|
+    vm_name = "revisionExplorer-ansible2"
+
+    vm_config.vm.box = "bento/centos-7.6"
+    vm_config.vm.network "private_network", ip: "10.0.0.206"
+    vm_config.vm.hostname = vm_name
+	
+	vm_config.vm.provision "shell", inline: "#{ANSIBLE_INSTALL_COMMAND}"
+
+    vm_config.vm.provider "virtualbox" do |vb|
+      vb.name = vm_name
+
+      # Customize the amount of memory on the VM:
+      vb.memory = "2048"
+      vb.cpus = 2
+    end
+	
+	vm_config.vm.synced_folder File.expand_path('~/Dropbox/self-development/evolution_plan/developments/revisionExplorer-ci'), "/home/#{USER}/ansible"
+  end
+  
+
+  #setup revisionExplorer-ci2
+  config.vm.define "revisionExplorer-ci2" do |vm_config|
+    vm_name = "revisionExplorer-ci2"
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.201"
@@ -37,8 +59,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
   
   #setup revisionExplorer-kube
-  config.vm.define "revisionExplorer-kube" do |vm_config|
-    vm_name = "revisionExplorer-kube"
+  config.vm.define "revisionExplorer-kube-master" do |vm_config|
+    vm_name = "revisionExplorer-kube-master"
 
     vm_config.vm.box = "bento/centos-7.6"
 	vm_config.vm.network "private_network", ip: "10.0.0.202"
@@ -56,8 +78,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
   
   #setup revisionExplorer-test
-  config.vm.define "revisionExplorer-test" do |vm_config|
-    vm_name = "revisionExplorer-test"
+  config.vm.define "revisionExplorer-kube-node" do |vm_config|
+    vm_name = "revisionExplorer-kube-node"
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.203"
@@ -72,65 +94,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.memory = "1024"
       vb.cpus = 1
     end
-  end
-  
-  #setup revisionExplorer-qa
-  config.vm.define "revisionExplorer-qa" do |vm_config|
-    vm_name = "revisionExplorer-qa"
-
-    vm_config.vm.box = "bento/centos-7.6"
-    vm_config.vm.network "private_network", ip: "10.0.0.204"
-    vm_config.vm.hostname = vm_name
-	
-	vm_config.vm.provision "shell", :run => 'always', inline: "#{DISABLE_SWAP}"
-
-    vm_config.vm.provider "virtualbox" do |vb|
-      vb.name = vm_name
-
-      # Customize the amount of memory on the VM:
-      vb.memory = "1024"
-      vb.cpus = 1
-    end
-  end
-  
-  #setup revisionExplorer-prod
-  config.vm.define "revisionExplorer-prod" do |vm_config|
-    vm_name = "revisionExplorer-prod"
-
-    vm_config.vm.box = "bento/centos-7.6"
-    vm_config.vm.network "private_network", ip: "10.0.0.205"
-    vm_config.vm.hostname = vm_name
-	
-	vm_config.vm.provision "shell", :run => 'always', inline: "#{DISABLE_SWAP}"
-
-    vm_config.vm.provider "virtualbox" do |vb|
-      vb.name = vm_name
-
-      # Customize the amount of memory on the VM:
-      vb.memory = "1024"
-      vb.cpus = 1
-    end
-  end
-  
-  #setup revisionExplorer-ansible
-  config.vm.define "revisionExplorer-ansible" do |vm_config|
-    vm_name = "revisionExplorer-ansible"
-
-    vm_config.vm.box = "bento/centos-7.6"
-    vm_config.vm.network "private_network", ip: "10.0.0.206"
-    vm_config.vm.hostname = vm_name
-	
-	vm_config.vm.provision "shell", inline: "#{ANSIBLE_INSTALL_COMMAND}"
-
-    vm_config.vm.provider "virtualbox" do |vb|
-      vb.name = vm_name
-
-      # Customize the amount of memory on the VM:
-      vb.memory = "2048"
-      vb.cpus = 2
-    end
-	
-	vm_config.vm.synced_folder File.expand_path('~/Dropbox/self-development/evolution_plan/developments/revisionExplorer-ci'), "/home/#{USER}/ansible"
   end
   
 end
