@@ -1,20 +1,12 @@
 ---
 - hosts: kubernetes
-  remote_user: vagrant
+  remote_user: "{{ jenkins_os_user }}"
   become: yes
   
-  vars:
-    docker_edition: 'ce'
-    docker_package: "docker-{{ docker_edition }}"
-    docker_package_state: present
-    docker_compose_version: "1.24.0-rc1"
-    docker_users:
-      - vagrant
-      
+  vars:   
     swap_file_state: absent
     
   roles:
-   - geerlingguy.docker
    - geerlingguy.swap
    
   post_tasks:
@@ -28,19 +20,29 @@
       copy:
         src: "templates/kube-flannel.yml"
         dest: "/tmp/kube-flannel.yml"
+        owner: "{{ jenkins_os_user }}"
         
 - hosts: kubernetes_master
-  remote_user: vagrant
+  remote_user: "{{ jenkins_os_user }}"
   become: yes
   
   vars:  
     kubernetes_role: "master"
     kubernetes_allow_pods_on_master: false
-    kubernetes_apiserver_advertise_address: '10.0.0.202'
+    kubernetes_apiserver_advertise_address: "{{ inventory_hostname }}"
     kubernetes_flannel_manifest_file: "/tmp/kube-flannel.yml"
     
   roles:
     - geerlingguy.kubernetes
+    
+  tasks:
+    - name: "Move .kube config folder to {{ jenkins_os_user }} home directory"
+      shell: "mv /root/.kube {{ jenkins_home }}.kube && chmod a+r /etc/kubernetes/admin.conf"
+      
+    - name: Fix permissions of .kube config dir
+      file:
+        path: "{{ jenkins_home }}.kube"
+        owner: "{{ jenkins_os_user }}"
     
 - hosts: kubernetes_nodes
   remote_user: vagrant

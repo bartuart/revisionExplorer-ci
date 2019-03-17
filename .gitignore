@@ -4,3 +4,7 @@ roles/*
 !roles/put_here_project_roles
 VAULT_PASSWORD_FILE
 *.retry
+ssl/*
+!ssl/generated_ssl_certs
+ssh/*
+!ssh/generated_ssh_keys

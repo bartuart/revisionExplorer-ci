@@ -1,0 +1,19 @@
+---
+#SSL self signed cert info
+ssl_local_dir: "{{ playbook_dir }}/ssl"
+ssl_private_key_file_name: "revisionsCI.pem"
+ssl_private_key_file_path: "{{ ssl_local_dir }}/{{ ssl_private_key_file_name }}"
+ssl_csr_file_name: "revisionsCI.csr"
+ssl_csr_file_path: "{{ ssl_local_dir }}/{{ ssl_csr_file_name }}"
+ssl_cert_file_name: "revisionsCI.crt"
+ssl_cert_file_path: "{{ ssl_local_dir }}/{{ ssl_cert_file_name }}"
+
+#Directory for self-generated SSH keys
+ssh_keys_local_dir: "{{ playbook_dir }}/ssh"
+ssh_private_key_name: "id_rsa"
+ssh_private_key_local_path: "{{ ssh_keys_local_dir }}/{{ ssh_private_key_name }}"
+ssh_public_key_name: "id_rsa.pub"
+ssh_public_key_local_path: "{{ ssh_keys_local_dir }}/{{ ssh_public_key_name }}"
+
+#SSH public key for vagrant user
+ssh_public_key_path_vagrant: /home/vagrant/.ssh/id_rsa.pub

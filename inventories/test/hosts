@@ -9,15 +9,17 @@
 
 [kubernetes_nodes]
 10.0.0.203
-10.0.0.204
-10.0.0.205
 
-[kubernetes:children]
+[jenkins_nodes:children]
+jenkins
+kubernetes_master
+
+[nexus_docker_registry_clients:children]
+jenkins
 kubernetes_master
 kubernetes_nodes
 
-[docker_registry_users:children]
-jenkins
+[kubernetes:children]
 kubernetes_master
 kubernetes_nodes
 
