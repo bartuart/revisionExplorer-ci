@@ -7,9 +7,6 @@ nexus_docker_registry_internal_port: 1885
 nexus_admin_user: admin
 nexus_os_user: nexus
 nexus_os_group: nexus
-nexus_ssl_dir: "/home/{{ nexus_os_user }}/ssl"
-nexus_ssl_key: "{{ nexus_ssl_dir }}/nexus.pem"
-nexus_ssl_csr_file: "{{ nexus_ssl_dir }}/nexus.csr"
-nexus_ssl_cert_file: "{{ nexus_ssl_dir }}/nexus.crt"
-nexus_cert_file_temp_location: "/tmp/{{ nexus_host }}{{ nexus_ssl_cert_file }}"
-ssl_cert_name: nexus.pem
+nexus_ssl_dir: "/etc/ssl/certs/revisionsCI"
+nexus_ssl_cert_file: "{{ nexus_ssl_dir }}/{{ ssl_cert_file_name }}"
+nexus_ssl_key: "{{ nexus_ssl_dir }}/{{ ssl_private_key_file_name }}"

@@ -1,0 +1,191 @@
+---
+- hosts: localhost
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Install epel-release
+      yum:
+        name: epel-release
+        state: present
+        
+    - name: Install python liblaries
+      yum:
+        name: "{{ packages }}"
+        state: present
+      vars:
+        packages:
+        - python-pip
+        - python-devel.x86_64
+        - openssl-devel.x86_64
+        - libffi-devel.x86_64
+        - python-setuptools.noarch
+        
+    - name: Install pyopenssl using pip module
+      pip:
+        name: pyopenssl
+    
+    - name: Generate pem file for SSL certificate
+      openssl_privatekey:
+        path: "{{ ssl_private_key_file_path }}"
+        
+    - name: Generate CSR for SSL certificate
+      openssl_csr:
+        path: "{{ ssl_csr_file_path }}"
+        privatekey_path: "{{ ssl_private_key_file_path }}"
+        subject_alt_name: "IP:{{ nexus_host }}"
+        
+    - name: Generate a Self Signed OpenSSL certificate
+      openssl_certificate:
+        path: "{{ ssl_cert_file_path }}"
+        privatekey_path: "{{ ssl_private_key_file_path }}"
+        csr_path: "{{ ssl_csr_file_path }}"
+        provider: selfsigned
+        
+    - name: Generate SSH key pair
+      command: 'ssh-keygen -q -t rsa -f {{ ssh_private_key_local_path }} -C "" -N ""'
+      args:
+        creates: "{{ ssh_private_key_local_path }}"
+        
+- hosts: nexus_docker_registry_clients
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Enable trusted CA
+      command: "update-ca-trust force-enable"
+        
+    - name: Make sure the folder exists (Red Hat)
+      file:
+        path: /etc/ssl/certs
+        state: directory
+        
+    - name: Copy PEM into folder (Red Hat)
+      copy:
+        src: "{{ ssl_cert_file_path }}"
+        dest: "/etc/ssl/certs/{{ ssl_cert_file_name }}"
+      
+    - name: Creating link for particular certificate
+      file:
+        src: "/etc/ssl/certs/{{ ssl_cert_file_name }}"
+        dest: "/etc/pki/ca-trust/source/anchors/{{ ssl_cert_file_name }}"
+        state: link
+      
+    - name: Update trusted CA
+      command: "update-ca-trust"
+      
+- hosts: nexus
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Create nexus group
+      group:
+        name: "{{ nexus_os_group }}"
+        state: present
+        
+    - name: Create Nexus user
+      user:
+        name: "{{ nexus_os_user }}"
+        groups: "{{ nexus_os_group }}"
+        
+    - name: Create directory for self signed SSL cert
+      file:
+        path: "{{ nexus_ssl_dir }}"
+        group: "{{ nexus_os_group }}"
+        owner: "{{ nexus_os_user }}"
+        state: directory
+        
+    - name: Copy SSL cert file to nexus server
+      copy:
+        src: "{{ ssl_cert_file_path }}"
+        dest: "{{ nexus_ssl_dir }}/{{ ssl_cert_file_name }}"
+        owner: "{{ nexus_os_user }}"
+        group: "{{ nexus_os_group }}"
+        
+    - name: Copy SSL cert KEY file to nexus server
+      copy:
+        src: "{{ ssl_private_key_file_path }}"
+        dest: "{{ nexus_ssl_dir }}/{{ ssl_private_key_file_name }}"
+        owner: "{{ nexus_os_user }}"
+        group: "{{ nexus_os_group }}"
+        
+- hosts: nexus_docker_registry_clients
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Create jenkins group
+      group:
+        name: "{{ jenkins_os_group }}"
+        state: present
+        
+    - name: Create jenkins user
+      user:
+        name: "{{ jenkins_os_user }}"
+        groups: "{{ jenkins_os_group }}"
+        home: "{{ jenkins_home }}"
+        
+    - name: Allow {{ jenkins_os_group }} group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%{{ jenkins_os_group }}'
+        line: '%{{ jenkins_os_group }} ALL=(ALL) NOPASSWD: ALL'
+        validate: 'visudo -cf %s'
+
+- hosts: jenkins
+  remote_user: vagrant
+  become: yes
+  
+  tasks:        
+    - name: Create directory for jenkins ssh keys
+      file:
+        path: "{{ jenkins_ssh_dir }}"
+        group: "{{ jenkins_os_group }}"
+        owner: "{{ jenkins_os_user }}"
+        mode: 0700
+        state: directory
+        
+    - name: Copy generated SSH private key to server
+      copy:
+        src: "{{ ssh_private_key_local_path }}"
+        dest: "{{ jenkins_ssh_dir }}/{{ ssh_private_key_name }}"
+        owner: "{{ jenkins_os_user }}"
+        group: "{{ jenkins_os_group }}"
+        mode: 0600
+        
+    - name: Copy generated SSH public key to server
+      copy:
+        src: "{{ ssh_public_key_local_path }}"
+        dest: "{{ jenkins_ssh_dir }}/{{ ssh_public_key_name }}"
+        owner: "{{ jenkins_os_user }}"
+        group: "{{ jenkins_os_group }}"
+        mode: 0644
+        
+    - name: Add Kubernetes master hosts to known hosts file  
+      shell: 'ssh-keyscan -H "{{ item }}" >> {{ jenkins_ssh_dir }}/known_hosts'
+      with_items: "{{ groups['kubernetes_master'] }}"
+      become_user: "{{ jenkins_os_user }}"
+        
+- hosts: kubernetes_master
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Add authorized keys for Jenkins Kubernetes agent
+      authorized_key:
+        user: "{{ jenkins_os_user }}"
+        state: present
+        key: "{{ lookup('file', '{{ ssh_public_key_local_path }}') }}"
+        
+- hosts: kubernetes
+  remote_user: vagrant
+  become: yes
+  
+  tasks:
+    - name: Add authorized keys for Jenkins Kubernetes agent
+      authorized_key:
+        user: "{{ jenkins_os_user }}"
+        state: present
+        key: "{{ lookup('file', '{{ ssh_public_key_path_vagrant }}') }}"

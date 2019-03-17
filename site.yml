@@ -1,4 +1,6 @@
 ---
+- import_playbook: users_certs_keys.yml
+- import_playbook: tools.yml
 - import_playbook: kubernetes-playbook.yml
 - import_playbook: nexus-playbook.yml
 - import_playbook: jenkins-playbook.yml

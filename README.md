@@ -23,7 +23,7 @@ Continuous Integration for revisionExplorer project
 ```ansible-playbook site.yml -i ./inventories/test --vault-password-file ../VAULT_PASSWORD_FILE --tags=update```
 
 ## Jenkins update
-To install/update plugins:
+To install/update plugins, agents:
 
 ```ansible-playbook jenkins-playbook.yml -i ./inventories/test --vault-password-file ../VAULT_PASSWORD_FILE```
 

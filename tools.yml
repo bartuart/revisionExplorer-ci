@@ -1,0 +1,44 @@
+---
+- hosts: nexus_docker_registry_clients
+  remote_user: vagrant
+  become: yes
+  
+  vars:
+    docker_edition: 'ce'
+    docker_package: "docker-{{ docker_edition }}"
+    docker_package_state: present
+    docker_install_compose: False
+    docker_users:
+      - "{{ jenkins_os_user }}"
+      
+  roles:
+    - role: geerlingguy.docker
+    
+- hosts: jenkins_nodes
+  remote_user: vagrant
+  become: yes
+  
+  roles:
+    - role: geerlingguy.java
+      when: "ansible_os_family == 'RedHat'"
+      java_packages:
+        - java-1.8.0-openjdk
+    
+    - role: geerlingguy.git
+    
+    - role: gantsign.maven
+    
+  tasks:
+    - name: Set git global user email
+      become_user: "{{ jenkins_os_user }}"
+      git_config:
+        name: user.email
+        scope: global
+        value: "{{ jenkins_git_email }}"
+        
+    - name: Set git global user
+      become_user: "{{ jenkins_os_user }}"
+      git_config:
+        name: user.name
+        scope: global
+        value: "{{ jenkins_git_user }}"

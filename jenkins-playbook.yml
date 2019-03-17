@@ -1,141 +1,11 @@
 ---
-- hosts: nexus
-  remote_user: vagrant
-  become: yes
-  
-  tasks:
-    - name: Copy certificate file from Nexus host to local
-      fetch:
-        src: "{{ nexus_ssl_cert_file }}"
-        dest: "/tmp"
-
 - hosts: jenkins
   remote_user: vagrant
   become: yes
   
-  vars:
-    docker_edition: 'ce'
-    docker_package: "docker-{{ docker_edition }}"
-    docker_package_state: present
-    docker_install_compose: true
-    docker_compose_version: "1.24.0-rc1"
-    docker_users:
-      - jenkins
-
   roles:
     - role: fubarhouse.curl
-    
-    - role: geerlingguy.java
-      when: "ansible_os_family == 'RedHat'"
-      java_packages:
-        - java-1.8.0-openjdk
-    
     - role: geerlingguy.jenkins
-    
-    - role: geerlingguy.docker
-    
-    - role: geerlingguy.git
-    
-    - role: gantsign.maven
-      
-  tasks:
-    - name: Enable Jenkins port
-      firewalld:
-        port: "{{ jenkins_http_port }}/tcp"
-        permanent: yes
-        state: enabled
-      
-    - name: Set git global user email
-      become_user: jenkins
-      git_config:
-        name: user.email
-        scope: global
-        value: arturik16@inbox.lv
-        
-    - name: Set git global user
-      become_user: jenkins
-      git_config:
-        name: user.name
-        scope: global
-        value: bartuart
-        
-- hosts: docker_registry_users
-  remote_user: vagrant
-  become: yes
-  
-  tasks:
-    - name: Enable trusted CA
-      command: "update-ca-trust force-enable"
-        
-    - name: Make sure the folder exists (Red Hat)
-      file:
-        path: /etc/ssl/certs
-        state: directory
-        
-    - name: Copy PEM into folder (Red Hat)
-      copy:
-        src: "{{ nexus_cert_file_temp_location }}"
-        dest: "/etc/ssl/certs/{{ ssl_cert_name }}"
-      
-    - name: Creating link for particular certificate
-      file:
-        src: "/etc/ssl/certs/{{ ssl_cert_name }}"
-        dest: "/etc/pki/ca-trust/source/anchors/{{ ssl_cert_name }}"
-        state: link
-      
-    - name: Update trusted CA
-      command: "update-ca-trust"
-      
-    - name: Restart Docker
-      service:
-        name: docker
-        state: restarted
-        
-- hosts: jenkins
-  remote_user: vagrant
-  become: yes
-  tags: update
-  
-  tasks:
-    - name: Generate SSH key pair
-      command: 'ssh-keygen -q -t rsa -f {{ jenkins_ssh_dir }}/id_rsa -C "" -N ""'
-      args:
-        creates: '{{ jenkins_ssh_dir }}/id_rsa'
-        
-    - name: Set permissions for Jenkins private key
-      file:
-        path: "{{ jenkins_ssh_dir }}/id_rsa"
-        owner: jenkins
-        group: jenkins
-        mode: 0600
-        
-    - name: Set permissions for Jenkins public key
-      file:
-        path: "{{ jenkins_ssh_dir }}/id_rsa.pub"
-        owner: jenkins
-        group: jenkins
-        mode: 0644
-        
-    - name: Copy SSH public key from Jenkins server to local folder
-      fetch:
-        src: "{{ jenkins_ssh_dir }}/id_rsa.pub"
-        dest: "/tmp"
-        
-    - name: Move got SSH public key into local /tmp folder
-      command: "mv /tmp/{{ inventory_hostname }}{{ jenkins_ssh_dir }}/id_rsa.pub /tmp/id_rsa.pub"
-      delegate_to: localhost
-
-- hosts: kubernetes_master
-  remote_user: vagrant
-  become: yes
-  tags: update
-  
-  tasks:
-    - name: Set authorized key taken from local temp file
-      authorized_key:
-        user: vagrant
-        state: present
-        key: "{{ lookup('file', '/tmp/id_rsa.pub') }}"
         
 - hosts: jenkins
   remote_user: vagrant
@@ -149,19 +19,15 @@
     
     jenkins_config_credentials:
       - kind: username_with_password
-        id: github-account
-        username: "{{ jenkins_github_user }}"
-        password: "{{ jenkins_github_password }}"
-        description: Github Credentials
-      - kind: username_with_password
         id: docker-registry
         username: "{{ nexus_admin_user }}"
         password: "{{ nexus_admin_password_vault }}"
         description: Nexus Docker Registry
-      - kind: username_with_password
+      - kind: ssh_username_with_private_key
         id: kubernetes-master
         username: "{{ jenkins_agent_user }}"
-        password: "{{ jenkins_agent_password }}"
+        private_key: "{{ lookup('file', '{{ ssh_private_key_local_path }}') }}"
+        passphrase: ''
         description: SSH to Kubernetes master
         
     jenkins_config_global_environment_variables:
@@ -173,6 +39,12 @@
     jenkins_job_dsl_password: "{{ jenkins_admin_password }}"
     jenkins_job_dsl_content: "{{ lookup('file', 'jenkins-job-dsl-scripts/play-job.groovy') }}"
   
+  pre_tasks:
+    - name: Ensure Jenkins is up and running
+      service:
+        name: jenkins
+        state: started
+  
   roles:
    - meierw.jenkins_config
    - meierw.jenkins_job_dsl_exec
@@ -182,7 +54,7 @@
   become: yes
   
   vars:
-    master_host: 10.0.0.201
+    master_host: "{{ jenkins_host }}"
     master_username: "{{ jenkins_admin_username }}"
     master_password: "{{ jenkins_admin_password }}"
     slave_linux_jenkins_cred_id: kubernetes-master
@@ -192,32 +64,7 @@
     slave_agent_name: kubernetes_master
   
   roles:
-    - role: geerlingguy.java
-      when: "ansible_os_family == 'RedHat'"
-      java_packages:
-        - java-1.8.0-openjdk
-        
     - role: lean_delivery.jenkins_slave
-    
-  tasks:
-    - name: Set git global user email
-      become_user: jenkins
-      git_config:
-        name: user.email
-        scope: global
-        value: arturik16@inbox.lv
-        
-    - name: Set git global user
-      become_user: jenkins
-      git_config:
-        name: user.name
-        scope: global
-        value: bartuart
-    
-    - name: Add agent user to docker group
-      user:
-        name: "{{ slave_linux_jenkins_username }}"
-        groups: "{{ slave_linux_user_group }},docker"
    
 - hosts: jenkins
   remote_user: vagrant
@@ -228,9 +75,3 @@
       service:
         name: jenkins
         state: restarted
-      
-    - name: Restart Docker
-      service:
-        name: docker
-        state: restarted
-  
