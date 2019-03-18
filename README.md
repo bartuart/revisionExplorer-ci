@@ -1,6 +1,10 @@
 # revisionExplorer-ci
 Continuous Integration for revisionExplorer project
 
+#Requirements
+* Vagrant [https://www.vagrantup.com/]
+* Oracle VM VirtualBox [https://www.virtualbox.org/]
+
 
 # Make VMs UP and Running
 ```vagrant up```
