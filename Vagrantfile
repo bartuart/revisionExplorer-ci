@@ -21,9 +21,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.provision "file", source: "#{SSH_KEYS}id_rsa.pub", destination: "~/.ssh/id_rsa.pub"
   
 
-  #setup revisionExplorer-ci2
-  config.vm.define "revisionExplorer-ci2" do |vm_config|
-    vm_name = "revisionExplorer-ci2"
+  #setup revisionExplorer-ci
+  config.vm.define "revisionExplorer-ci" do |vm_config|
+    vm_name = "revisionExplorer-ci"
 
     vm_config.vm.box = "bento/centos-7.6"
     vm_config.vm.network "private_network", ip: "10.0.0.201"
@@ -38,7 +38,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
   
-  #setup revisionExplorer-kube
+  #setup revisionExplorer-kube-master
   config.vm.define "revisionExplorer-kube-master" do |vm_config|
     vm_name = "revisionExplorer-kube-master"
 
@@ -57,7 +57,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
   
-  #setup revisionExplorer-test
+  #setup revisionExplorer-kube-node
   config.vm.define "revisionExplorer-kube-node" do |vm_config|
     vm_name = "revisionExplorer-kube-node"
 
@@ -76,12 +76,12 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
   
-  #setup revisionExplorer-ansible2
-  config.vm.define "revisionExplorer-ansible2" do |vm_config|
-    vm_name = "revisionExplorer-ansible2"
+  #setup revisionExplorer-ansible
+  config.vm.define "revisionExplorer-ansible" do |vm_config|
+    vm_name = "revisionExplorer-ansible"
 
     vm_config.vm.box = "bento/centos-7.6"
-    vm_config.vm.network "private_network", ip: "10.0.0.206"
+    vm_config.vm.network "private_network", ip: "10.0.0.204"
     vm_config.vm.hostname = vm_name
 	
 	vm_config.vm.provision "shell", inline: "#{ANSIBLE_INSTALL_COMMAND}"
