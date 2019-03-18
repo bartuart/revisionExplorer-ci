@@ -41,9 +41,10 @@
   
   pre_tasks:
     - name: Ensure Jenkins is up and running
-      service:
-        name: jenkins
-        state: started
+      wait_for:
+        host: "{{ inventory_hostname }}"
+        port: "{{ jenkins_http_port }}"
+        delay: 25
   
   roles:
    - meierw.jenkins_config
